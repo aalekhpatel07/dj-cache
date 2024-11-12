@@ -13,12 +13,11 @@ from django.db import models
 from django.db.models import BinaryField, BigIntegerField
 from django.utils.timezone import now
 import concurrent.futures
-from django.conf import settings
 
 
 executor: typing.Optional[concurrent.futures.ThreadPoolExecutor] = None
 
-logger = logging.getLogger("core")
+logger = logging.getLogger(__name__)
 
 MAX_WORKERS = os.cpu_count() * 2
 
@@ -29,8 +28,13 @@ _KEY_LOCKS: typing.Dict[typing.Tuple, threading.Lock] = {}  # store the locks pe
 
 def make_key(obj, typed=True):
     fn, args, kwargs = obj
-    module = inspect.getmodule(fn).__name__
-    full_name = module + "." + fn.__name__
+    module = inspect.getmodule(fn)
+    if module is None:
+        module_name = "__main__"
+    else:
+        module_name = module.__name__
+    full_name = module_name + "." + fn.__name__
+
     key = (full_name, tuple(args), tuple(sorted(kwargs.items())))
     if typed:
         key += tuple(type(v) for v in args)

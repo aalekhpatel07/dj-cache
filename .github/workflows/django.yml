@@ -26,6 +26,6 @@ jobs:
         python -m pip install --upgrade pip build
         cd dj-cache && python -m build .
     - name: Collect wheels and tar.gz
-      uses: actions/cache@4
+      uses: actions/cache@v4.1.2
       with:
         path: dj-cache/dist

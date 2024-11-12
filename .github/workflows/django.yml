@@ -28,4 +28,5 @@ jobs:
     - name: Collect wheels and tar.gz
       uses: actions/cache@v4.1.2
       with:
+        key: ${{ matrix.python-version }}
         path: dj-cache/dist

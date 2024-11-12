@@ -66,12 +66,12 @@ class Cache(models.Model):
         if stored is None:
             value = fn(*args, **kwargs)
             value_serialized = pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
-            Cache.objects.create(key=key_serialized, value=value_serialized, ttl_seconds=ttl or DEFAULT_TTL_SECONDS)
+            Cache.objects.create(key=key_serialized, value=value_serialized, ttl_seconds=ttl or Cache.DEFAULT_TTL_SECONDS)
             return value
 
         value_deserialized = pickle.loads(stored.value)
         # Check if stored value is expired.
-        expires_at = stored.last_updated_at + timedelta(seconds=stored.ttl_seconds or DEFAULT_TTL_SECONDS)
+        expires_at = stored.last_updated_at + timedelta(seconds=stored.ttl_seconds or Cache.DEFAULT_TTL_SECONDS)
         expired = now() > expires_at
         if not expired:
             logger.debug("Key is still fresh. Returning deserialized value.")

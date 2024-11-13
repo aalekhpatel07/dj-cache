@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dj-cache"
-version = "0.1"
+version = "0.2"
 dependencies = [
     "django>=3.2",  # Replace "X.Y" as appropriate
 ]

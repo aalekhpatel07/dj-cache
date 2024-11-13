@@ -1,6 +1,5 @@
 import concurrent.futures
 import os
-from collections.abc import Callable
 import typing
 import functools
 import threading
@@ -44,15 +43,14 @@ def make_key(obj, typed=True):
 
 class Cache(models.Model):
     key = BinaryField(db_index=True)
-    value = BinaryField(db_index=True)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    last_updated_at = models.DateTimeField(auto_now=True, db_index=True)
+    value = BinaryField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
 
     DEFAULT_TTL_SECONDS = 0
 
     ttl_seconds = models.BigIntegerField(
-        default=int(timedelta(seconds=DEFAULT_TTL_SECONDS).total_seconds()),
-        db_index=True,
+        default=DEFAULT_TTL_SECONDS,
     )
 
     @staticmethod
@@ -81,16 +79,17 @@ class Cache(models.Model):
         with _LOCK_CREATOR:
             if key not in _KEY_LOCKS:
                 _KEY_LOCKS[key] = threading.Lock()
+            _key_lock = _KEY_LOCKS[key]
 
-        _key_lock = _KEY_LOCKS[key]
-
-        # Key has already been requested a cache update.
-        if _key_lock.locked():
+        # Don't wait to acquire in case
+        # it is already being held elsewhere.
+        acquired = _key_lock.acquire(blocking=False)
+        if not acquired:
+            # Key has already been requested a cache update.
             logger.debug("Key is expired but a cache update is queued so will just return last stored value.")
             return value_deserialized
 
         # Hold the key-lock while the cache update runs.
-        _key_lock.acquire()
         logger.debug("Key is expired. Submitting function to executor.")
         global executor
         if executor is None:

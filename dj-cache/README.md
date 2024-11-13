@@ -5,8 +5,7 @@ A database-backed eventually consistent Last-Write-Wins cache for Python functio
 ## Installation
 
 ```sh
-pip install \
-    git+https://github.com/aalekhpatel07/dj-cache.git#subdirectory=dj-cache
+pip install dj-cache
 ```
 
 ## Usage
